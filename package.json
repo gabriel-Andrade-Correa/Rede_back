@@ -7,7 +7,12 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "view-db": "ts-node src/scripts/viewDatabase.ts",
+    "view-posts": "ts-node src/scripts/viewPosts.ts",
+    "view-web": "ts-node src/scripts/viewDatabaseWeb.ts",
+    "clean-media": "ts-node src/scripts/cleanMedia.ts",
+    "fix-posts": "ts-node src/scripts/fixPosts.ts"
   },
   "dependencies": {
     "@types/sharp": "^0.31.1",
@@ -21,7 +26,8 @@
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
     "sharp": "^0.33.5",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -7,14 +7,20 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Limite de 5MB
+    fileSize: 10 * 1024 * 1024, // 10MB
   },
   fileFilter: (req, file, cb) => {
-    // Aceita apenas imagens
+    console.log('Recebendo arquivo:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
+
+    // Aceita qualquer tipo de imagem
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Apenas imagens são permitidas.'));
+      cb(new Error('Apenas imagens são permitidas'));
     }
   },
 });

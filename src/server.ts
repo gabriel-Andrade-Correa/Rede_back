@@ -6,6 +6,8 @@ import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import authRoutes from './routes/authRoutes';
 import mediaRoutes from './routes/mediaRoutes';
+import postRoutes from './routes/postRoutes';
+import userRoutes from './routes/userRoutes';
 
 // Configuração das variáveis de ambiente
 dotenv.config();
@@ -17,24 +19,65 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*', // Em produção, especifique os domínios permitidos
+    origin: process.env.NODE_ENV === 'development' 
+      ? '*' // Permite qualquer origem em desenvolvimento
+      : ['https://seu-app.com'], // URL do app em produção
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }
 });
 
 // Middlewares
+app.use((req, res, next) => {
+  // Não loga requisições de mídia para reduzir ruído
+  if (!req.url.startsWith('/api/media/')) {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  }
+  next();
+});
+
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: process.env.NODE_ENV === 'development'
+    ? '*' // Permite qualquer origem em desenvolvimento
+    : ['https://seu-app.com'], // URL do app em produção
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  credentials: true,
+  maxAge: 86400,
+  preflightContinue: true
 }));
+
+// Configurar headers padrão para todas as respostas
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'development') {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else {
+    const allowedOrigins = ['https://seu-app.com'];
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+  
+  // Responder imediatamente a requisições OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/users', userRoutes);
 
 // Rota de health check
 app.get('/api/health', (req, res) => {
